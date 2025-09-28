@@ -1,0 +1,3 @@
+pwntools
+discord.py
+aiohttp
