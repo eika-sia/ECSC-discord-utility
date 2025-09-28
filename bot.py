@@ -46,16 +46,20 @@ intents = discord.Intents.default()
 intents.message_content = True # Required for monitoring channel activities if needed, though not strictly for this bot.
 client = discord.Client(intents=intents)
 
-async def send_discord_message(message_content: str):
-    """Sends a message to the configured Discord channel."""
+async def send_discord_message(message_content: str, target_id: int = None):
+    """
+    Sends a message to the configured Discord channel or thread.
+    If target_id is provided, sends to that channel/thread ID. Otherwise uses DISCORD_CHANNEL_ID.
+    """
     await client.wait_until_ready()
+    target = target_id if target_id is not None else DISCORD_CHANNEL_ID
     try:
-        channel = client.get_channel(DISCORD_CHANNEL_ID)
-        if channel:
-            await channel.send(message_content)
-            log_success(f"Sent Discord message to channel {DISCORD_CHANNEL_ID}: '{message_content}'")
+        channel_or_thread = await client.fetch_channel(target)
+        if channel_or_thread:
+            await channel_or_thread.send(message_content)
+            log_success(f"Sent Discord message to ID {target}: '{message_content}'")
         else:
-            log_error(f"Discord channel with ID {DISCORD_CHANNEL_ID} not found.")
+            log_error(f"Discord channel/thread with ID {target} not found.")
     except Exception as e:
         log_error(f"Failed to send Discord message: {e}")
 
@@ -186,7 +190,7 @@ async def monitor_services():
                 current_status = current_team_services[service_name].get("checker", "OFFLINE")
                 status_term = "offline" if current_status == "OFFLINE" else "mumble"
                 down_msgs.append(f"`{service_name}` is `{status_term}`")
-            message = '\n'.join(down_msgs) + "\n@everyone"
+            message = '\n'.join(down_msgs) + "\neveryone"
             await send_discord_message(message)
 
         # Atk/Def Drops
@@ -218,7 +222,7 @@ async def monitor_services():
                     percent_change = ((current_delta - previous_delta) / abs(previous_delta)) * 100
                 def_msgs.append(f"`{service_name}` has `DEFENSE` issue\n-# {abs(percent_change):.2f}% change ({previous_delta:+.2f}->{current_delta:+.2f})")
         if atk_msgs or def_msgs:
-            message = '\n'.join(atk_msgs + def_msgs) + "\n@everyone"
+            message = '\n'.join(atk_msgs + def_msgs) + "\neveryone"
             await send_discord_message(message)
 
         # Update last_service_states for the next iteration
