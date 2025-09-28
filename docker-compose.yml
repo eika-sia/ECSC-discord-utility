@@ -1,0 +1,19 @@
+version: "3.8"
+
+networks:
+    shared-net:
+        external: true
+
+services:
+    ecsc-bot:
+        build: .
+        container_name: ecsc_monitor_bot
+        restart: unless-stopped
+        environment:
+            - DISCORD_BOT_TOKEN=Your_Token
+            - DISCORD_CHANNEL_ID=Your_Channel_ID
+            - API_HOST_PORT=10.42.251.2:8080
+            - TICK_LENGTH_SECONDS=10
+            - TEAM_ID=Your_Team_ID
+
+            - ATK_DEF_DROP_PERCENTAGE_THRESHOLD=0.5
